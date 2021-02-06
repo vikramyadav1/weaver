@@ -1,6 +1,7 @@
 package product
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -20,13 +21,13 @@ type ProductRepository interface {
 var _ ProductRepository = &SqlProductRepository{}
 
 type SqlProductRepository struct {
-	db sqlx.DB
+	Db *sqlx.DB
 }
 
 func (pr *SqlProductRepository) All() ([]Product, error) {
 	people := []Product{}
 
-	err := pr.db.Select(&people, "SELECT * FROM products")
+	err := pr.Db.Select(&people, "SELECT * FROM products;")
 
 	if err != nil {
 		return nil, err
@@ -38,9 +39,12 @@ func (pr *SqlProductRepository) All() ([]Product, error) {
 
 func (pr *SqlProductRepository) Get(id int) (*Product, error) {
 	person := Product{}
-	err := pr.db.Get(&person, "SELECT * from products WHERE id = $1", id)
+	err := pr.Db.Get(&person, "SELECT * from products WHERE id = $1;", id)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -48,7 +52,7 @@ func (pr *SqlProductRepository) Get(id int) (*Product, error) {
 }
 
 func (pr *SqlProductRepository) Create(p Product) (*Product, error) {
-	_, err := pr.db.NamedExec("INSERT INTO products (first_name,last_name,email,group_id) VALUES(:first_name, last_name,:email,:group_id)", p)
+	_, err := pr.Db.NamedExec("INSERT INTO products (id,name,description,price,group_id) VALUES(:id, :name,:description,:price,:group_id);", p)
 
 	if err != nil {
 		fmt.Printf("Error creating person: %v", err)
@@ -60,7 +64,7 @@ func (pr *SqlProductRepository) Create(p Product) (*Product, error) {
 
 func (pr *SqlProductRepository) Update(id int, p Product) (*Product, error) {
 	p.Id = id
-	_, err := pr.db.NamedExec("UPDATE products SET first_name=:first_name, last_name=:last_name, email=:email, group_id=:group_id WHERE id=:id", p)
+	_, err := pr.Db.NamedExec("UPDATE products SET id=:id, name=:name, description=:description, price=:price, group_id=:group_id WHERE id=:id;", p)
 
 	if err != nil {
 		fmt.Printf("Error creating person: %v", err)
@@ -71,7 +75,7 @@ func (pr *SqlProductRepository) Update(id int, p Product) (*Product, error) {
 }
 
 func (pr *SqlProductRepository) Delete(id int) error {
-	_, err := pr.db.NamedExec("DELETE FROM products WHERE id=:id", id)
+	_, err := pr.Db.Exec("DELETE FROM products WHERE id=$1;", id)
 
 	if err != nil {
 		fmt.Printf("Error deleting person: %v", err)
