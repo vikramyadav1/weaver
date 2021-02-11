@@ -1,0 +1,7 @@
+package {{.Name}}
+
+type {{.PublicName}} struct {
+  {{range .Columns}}
+    {{.Name}} {{.Type}} `db:"{{.LowerName}}"`
+  {{end}}
+}

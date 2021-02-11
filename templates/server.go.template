@@ -1,0 +1,137 @@
+package api
+
+import (
+	"encoding/json"
+	"github.com/gorilla/mux"
+	"github.com/vikramyadav1/weaver/sampleApp/models/{{.Name}}"
+	"net/http"
+	"strconv"
+)
+
+type {{.PublicName}}Json struct {
+  {{range .Columns}}
+    {{.Name}} {{.Type}} `db:"{{.LowerName}}"`
+  {{end}}
+
+	References {{.PublicName}}Reference `json:"references"`
+}
+
+type {{.PublicName}}Reference struct {
+  {{range .References.BelongsTo}}
+    {{.Name}} {{.Type}} `json:"{{.LowerName}}"`
+  {{end}}
+}
+
+func toJson{{.PublicName}}({{.VarPrefix}} {{.Name}}.{{.PublicName}}) {{.PublicName}}Json {
+	return {{.PublicName}}Json{
+    {{range .Columns}}
+      {{.Name}}: {{$.VarPrefix}}.{{.Name}},
+    {{end}}
+
+		References: {{.PublicName}}Reference{
+      {{range .References.BelongsTo}}
+        {{.Name}}: {{$.VarPrefix}}.{{.Name}},
+      {{end}}
+		},
+	}
+}
+
+func toDB{{.PublicName}}({{.VarPrefix}} {{.PublicName}}Json) {{.Name}}.{{.PublicName}} {
+	return {{.Name}}.{{.PublicName}}{
+    {{range .Columns}}
+      {{.Name}}: {{$.VarPrefix}}.{{.Name}},
+    {{end}}
+    {{range .References.BelongsTo}}
+      {{.Name}}: {{$.VarPrefix}}.References.{{Name}},
+    {{end}}
+	}
+}
+
+type {{.PublicName}}Server struct {
+	{{.PublicVarPrefix}}r {{.Name}}.{{.PublicName}}Repository
+}
+
+func ({{.VarPrefix}}s *{{.PublicName}}Server) RegisterRoutes(router *mux.Router) {
+	router.HandleFunc("/{{.PluralName}}", {{.VarPrefix}}s.GetAll{{.PublicPluralName}}).Methods("GET")
+	router.HandleFunc("/{{.PluralName}}", {{.VarPrefix}}s.Create{{.PublicName}}).Methods("POST")
+	router.HandleFunc("/{{.PluralName}}/{id}", {{.VarPrefix}}s.Get{{.PublicName}}).Methods("GET")
+	router.HandleFunc("/{{.PluralName}}/{id}", {{.VarPrefix}}s.Update{{.PublicName}}).Methods("PUT")
+	router.HandleFunc("/{{.PluralName}}/{id}", {{.VarPrefix}}s.Delete{{.PublicName}}).Methods("DELETE")
+}
+
+func ({{.VarPrefix}}s *{{.PublicName}}Server) GetAll{{.PublicPluralName}}(w http.ResponseWriter, r *http.Request) {
+	json{{.PublicPluralName}} := make([]{{.PublicName}}Json, 0)
+	{{.PluralName}}, _ := {{.VarPrefix}}s.{{.PublicVarPrefix}}r.All()
+
+	for _, {{.Name}} := range {{.PluralName}} {
+		json{{.PublicPluralName}} = append(json{{.PublicPluralName}}, toJson{{.PublicName}}({{.Name}}))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(json{{.PublicPluralName}})
+}
+
+func ({{.VarPrefix}}s *{{.PublicName}}Server) Get{{.PublicName}}(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	{{.Name}}Id, _ := strconv.Atoi(id)
+	{{.VarPrefix}}, err := {{.VarPrefix}}s.{{.PublicVarPrefix}}r.Get({{.Name}}Id)
+
+	if {{.VarPrefix}} == nil && err == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	} else if {{.VarPrefix}} == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(toJson{{.PublicName}}(*p))
+}
+
+func ({{.VarPrefix}}s *{{.PublicName}}Server) Create{{.PublicName}}(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var {{.VarPrefix}}j {{.PublicName}}Json
+	decoder.Decode(&{{.VarPrefix}}j)
+
+	{{.VarPrefix}}, err := {{.VarPrefix}}s.{{.PublicVarPrefix}}r.Create(toDB{{.PublicName}}({{.VarPrefix}}j))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(toJson{{.PublicName}}(*p))
+}
+
+func ({{.VarPrefix}}s *{{.PublicName}}Server) Update{{.PublicName}}(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	{{.Name}}Id, _ := strconv.Atoi(id)
+
+	decoder := json.NewDecoder(r.Body)
+	var {{.VarPrefix}}j {{.PublicName}}Json
+	decoder.Decode(&{{.VarPrefix}}j)
+
+	{{.VarPrefix}}, err := {{.VarPrefix}}s.{{.PublicVarPrefix}}r.Update({{.Name}}Id, toDB{{.PublicName}}({{.VarPrefix}}j))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(toJson{{.PublicName}}(*p))
+}
+
+func ({{.VarPrefix}}s *{{.PublicName}}Server) Delete{{.PublicName}}(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	{{.Name}}Id, _ := strconv.Atoi(id)
+
+	err := {{.VarPrefix}}s.{{.PublicVarPrefix}}r.Delete({{.Name}}Id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}

@@ -1,0 +1,86 @@
+package {{.Name}}
+
+import (
+	"database/sql"
+	"fmt"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+)
+
+//go:generate mockery --name={{.PublicName}}Repository
+
+type {{.PublicName}}Repository interface {
+	All() ([]{{.PublicName}}, error)
+	Get(id int) (*{{.PublicName}}, error)
+	Create({{.VarPrefix}} {{.PublicName}}) (*{{.PublicName}}, error)
+	Update(id int, {{.VarPrefix}} {{.PublicName}}) (*{{.PublicName}}, error)
+	Delete(id int) error
+}
+
+var _ {{.PublicName}}Repository = &Sql{{.PublicName}}Repository{}
+
+type Sql{{.PublicName}}Repository struct {
+	Db *sqlx.DB
+}
+
+func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) All() ([]{{.PublicName}}, error) {
+	{{.PluralName}} := []{{.PublicName}}{}
+
+	err := {{VarPrefix}}r.Db.Select(&{{.PluralName}}, "SELECT * FROM {{.PluralName}};")
+
+	if err != nil {
+		return nil, err
+	} else {
+
+		return {{.PluralName}}, nil
+	}
+}
+
+func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Get(id int) (*{{.PublicName}}, error) {
+	{{.Name}} := {{.PublicName}}{}
+	err := {{VarPrefix}}r.Db.Get(&{{.Name}}, "SELECT * from {{.PluralName}} WHERE id = $1;", id)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &{{.Name}}, nil
+}
+
+func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Create({{.VarPrefix}} {{.PublicName}}) (*{{.PublicName}}, error) {
+	_, err := {{VarPrefix}}r.Db.NamedExec("INSERT INTO {{.PluralName}} ({{.ColumnsCSV}}) VALUES({{.ColumnsColonCSV}});", {{.VarPrefix}})
+
+	if err != nil {
+		fmt.Printf("Error creating {{.Name}}: %v", err)
+		return nil, err
+	}
+
+	return new({{.PublicName}}), nil
+}
+
+func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Update(id int, {{.VarPrefix}} {{.PublicName}}) (*{{.PublicName}}, error) {
+	{{.VarPrefix}}.Id = id
+	_, err := {{VarPrefix}}r.Db.NamedExec("UPDATE {{.PluralName}} SET {{.NamedColumns}} WHERE id=:id;", {{.VarPrefix}})
+
+	if err != nil {
+		fmt.Printf("Error creating {{.Name}}: %v", err)
+		return nil, err
+	}
+
+	return new({{.PublicName}}), nil
+}
+
+func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Delete(id int) error {
+	_, err := {{VarPrefix}}r.Db.Exec("DELETE FROM {{.PluralName}} WHERE id=$1;", id)
+
+	if err != nil {
+		fmt.Printf("Error deleting {{.Name}}: %v", err)
+		return err
+	}
+
+	return nil
+}

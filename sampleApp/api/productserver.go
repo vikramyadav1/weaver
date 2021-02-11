@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/vikramyadav1/weaver/sampleApp/models/product"
 	"net/http"
@@ -78,7 +77,6 @@ func (ps *ProductServer) GetProduct(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	} else if err != nil {
-		fmt.Printf("=============== %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else if p == nil {
