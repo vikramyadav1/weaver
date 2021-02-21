@@ -24,10 +24,10 @@ type Sql{{.PublicName}}Repository struct {
 	Db *sqlx.DB
 }
 
-func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) All() ([]{{.PublicName}}, error) {
+func ({{.VarPrefix}}r *Sql{{.PublicName}}Repository) All() ([]{{.PublicName}}, error) {
 	{{.PluralName}} := []{{.PublicName}}{}
 
-	err := {{VarPrefix}}r.Db.Select(&{{.PluralName}}, "SELECT * FROM {{.PluralName}};")
+	err := {{.VarPrefix}}r.Db.Select(&{{.PluralName}}, "SELECT * FROM {{.PluralName}};")
 
 	if err != nil {
 		return nil, err
@@ -37,9 +37,9 @@ func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) All() ([]{{.PublicName}}, er
 	}
 }
 
-func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Get(id int) (*{{.PublicName}}, error) {
+func ({{.VarPrefix}}r *Sql{{.PublicName}}Repository) Get(id int) (*{{.PublicName}}, error) {
 	{{.Name}} := {{.PublicName}}{}
-	err := {{VarPrefix}}r.Db.Get(&{{.Name}}, "SELECT * from {{.PluralName}} WHERE id = $1;", id)
+	err := {{.VarPrefix}}r.Db.Get(&{{.Name}}, "SELECT * from {{.PluralName}} WHERE id = $1;", id)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -51,8 +51,8 @@ func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Get(id int) (*{{.PublicName}
 	return &{{.Name}}, nil
 }
 
-func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Create({{.VarPrefix}} {{.PublicName}}) (*{{.PublicName}}, error) {
-	_, err := {{VarPrefix}}r.Db.NamedExec("INSERT INTO {{.PluralName}} ({{.ColumnsCSV}}) VALUES({{.ColumnsColonCSV}});", {{.VarPrefix}})
+func ({{.VarPrefix}}r *Sql{{.PublicName}}Repository) Create({{.VarPrefix}} {{.PublicName}}) (*{{.PublicName}}, error) {
+	_, err := {{.VarPrefix}}r.Db.NamedExec("INSERT INTO {{.PluralName}} ({{.ColumnsCSV}}) VALUES({{.ColumnsColonCSV}});", {{.VarPrefix}})
 
 	if err != nil {
 		fmt.Printf("Error creating {{.Name}}: %v", err)
@@ -62,9 +62,9 @@ func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Create({{.VarPrefix}} {{.Pub
 	return new({{.PublicName}}), nil
 }
 
-func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Update(id int, {{.VarPrefix}} {{.PublicName}}) (*{{.PublicName}}, error) {
+func ({{.VarPrefix}}r *Sql{{.PublicName}}Repository) Update(id int, {{.VarPrefix}} {{.PublicName}}) (*{{.PublicName}}, error) {
 	{{.VarPrefix}}.Id = id
-	_, err := {{VarPrefix}}r.Db.NamedExec("UPDATE {{.PluralName}} SET {{.NamedColumns}} WHERE id=:id;", {{.VarPrefix}})
+	_, err := {{.VarPrefix}}r.Db.NamedExec("UPDATE {{.PluralName}} SET {{.NamedColumns}} WHERE id=:id;", {{.VarPrefix}})
 
 	if err != nil {
 		fmt.Printf("Error creating {{.Name}}: %v", err)
@@ -74,8 +74,8 @@ func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Update(id int, {{.VarPrefix}
 	return new({{.PublicName}}), nil
 }
 
-func ({{VarPrefix}}r *Sql{{.PublicName}}Repository) Delete(id int) error {
-	_, err := {{VarPrefix}}r.Db.Exec("DELETE FROM {{.PluralName}} WHERE id=$1;", id)
+func ({{.VarPrefix}}r *Sql{{.PublicName}}Repository) Delete(id int) error {
+	_, err := {{.VarPrefix}}r.Db.Exec("DELETE FROM {{.PluralName}} WHERE id=$1;", id)
 
 	if err != nil {
 		fmt.Printf("Error deleting {{.Name}}: %v", err)

@@ -1,0 +1,7 @@
+{
+  "name": "product",
+  "columns": [
+    {"name": "name", "type": "string"},
+    {"name": "quantity", "type": "int"}
+  ]
+}
