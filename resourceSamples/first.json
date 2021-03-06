@@ -1,5 +1,6 @@
 {
   "name": "product",
+  "rootModule": "github.com/vikramyadav1/store",
   "columns": [
     {"name": "name", "type": "string"},
     {"name": "quantity", "type": "int"}

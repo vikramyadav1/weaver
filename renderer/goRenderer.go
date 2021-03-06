@@ -10,6 +10,8 @@ import "text/template"
 var ModelFileName string = "model.go.template"
 var RepositoryFileName string = "repository.go.template"
 var ServerFileName string = "server.go.template"
+var MainFileName string = "main.go.template"
+var MainPartialFileName = "main.partial.go.template"
 
 type goRenderer struct {
 	templateDir string
@@ -81,5 +83,27 @@ func (gr goRenderings) Repository() []byte {
 }
 
 func (gr goRenderings) Main() []byte {
-	return make([]byte, 0)
+	filepath := filepath.Join(gr.templateDir, "go", MainFileName)
+	b, _ := ioutil.ReadFile(filepath)
+	t := template.Must(template.New("main-tmpl").Parse(string(b)))
+
+	var tpl bytes.Buffer
+	if err := t.Execute(&tpl, gr.rd); err != nil {
+		fmt.Printf("\nAn error occured while rendering the main file.\n Error: %v\n", err)
+	}
+
+	return tpl.Bytes()
+}
+
+func (gr goRenderings) PartialMain() []byte {
+	filepath := filepath.Join(gr.templateDir, "go", MainPartialFileName)
+	b, _ := ioutil.ReadFile(filepath)
+	t := template.Must(template.New("partial-main-tmpl").Parse(string(b)))
+
+	var tpl bytes.Buffer
+	if err := t.Execute(&tpl, gr.rd); err != nil {
+		fmt.Printf("\nAn error occured while rendering the partial main file.\n Error: %v\n", err)
+	}
+
+	return tpl.Bytes()
 }

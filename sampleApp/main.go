@@ -24,6 +24,5 @@ func main() {
 	ps.RegisterRoutes(r)
 
 	http.Handle("/", r)
-
 	http.ListenAndServe(":3000", nil)
 }

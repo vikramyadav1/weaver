@@ -4,8 +4,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/vikramyadav1/weaver/sampleApp/api"
-	"github.com/vikramyadav1/weaver/sampleApp/models/product"
+	"{{.RootModule}}/api"
+  "{{.RootModule}}/models/{{.Name}}"
 	"net/http"
 	"os"
 )
@@ -20,10 +20,10 @@ func main() {
 	defer db.Close()
 
 	{{.VarPrefix}}r := {{.Name}}.Sql{{.Name}}Repository{Db: db}
-	{{.VarPrefix}}s := api.{{.PublicName}}Server{{{.PublicVarPrefix}}r: &{{.VarPrefix}}r}
-	p{{.VarPrefi{{.VarPrefix}}}}.RegisterRoutes(r)
+	{{.VarPrefix}}s := api.{{.PublicName}}Server{{"{"}}{{.PublicVarPrefix}}r: &{{.VarPrefix}}r}
+	{{.VarPrefix}}s.RegisterRoutes(r)
+  //weaver:renderEnd
 
 	http.Handle("/", r)
-
 	http.ListenAndServe(":3000", nil)
 }

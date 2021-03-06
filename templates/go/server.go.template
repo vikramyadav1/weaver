@@ -3,9 +3,9 @@ string(b) api
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/vikramyadav1/weaver/sampleApp/models/{{.Name}}"
 	"net/http"
 	"strconv"
+	"{{.RootModule}}/models/{{.Name}}"
 )
 
 type {{.PublicName}}Json struct {

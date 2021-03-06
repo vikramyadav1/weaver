@@ -11,6 +11,7 @@ type Renderings interface {
 	Server() []byte
 	Repository() []byte
 	Main() []byte
+	PartialMain() []byte
 }
 
 type ResourceRenderer interface {

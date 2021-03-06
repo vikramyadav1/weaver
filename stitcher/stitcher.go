@@ -1,10 +1,12 @@
 package stitcher
 
 import (
+	"fmt"
 	"github.com/spf13/afero"
 	"github.com/vikramyadav1/weaver/parsers"
 	"github.com/vikramyadav1/weaver/renderer"
 	"path/filepath"
+	"strings"
 )
 
 type stitcher struct {
@@ -24,7 +26,7 @@ func NewStitcher(rootDir string, fs afero.Fs, r renderer.Renderings, rd parsers.
 }
 
 func (s stitcher) Stitch() error {
-	fns := []func(s *stitcher) error{tryCreateModel, tryCreateRepository, tryCreateServer}
+	fns := []func(s *stitcher) error{tryCreateModel, tryCreateRepository, tryCreateServer, tryCreateMain}
 	var err error
 	for _, fn := range fns {
 		if err = fn(&s); err != nil {
@@ -62,4 +64,23 @@ func tryCreateServer(s *stitcher) error {
 	}
 
 	return afero.WriteFile(s.fs, filepath.Join(dirPath, s.rd.Name+"Server.go"), s.renderings.Server(), 0777)
+}
+
+func tryCreateMain(s *stitcher) error {
+	var mainRendering []byte
+	mainFilepath := filepath.Join(s.rootDir, "main.go")
+
+	// Error not caught. Will be handle in future
+	mainExists, _ := afero.Exists(s.fs, mainFilepath)
+	if !mainExists {
+		mainRendering = s.renderings.Main()
+		return afero.WriteFile(s.fs, filepath.Join(s.rootDir, "main.go"), mainRendering, 0777)
+	}
+
+	mainRendering = s.renderings.PartialMain()
+	mainContents, err := afero.ReadFile(s.fs, mainFilepath)
+	fmt.Printf("Error reading main file.\nError: %v", err)
+	newMainContent := strings.Replace(string(mainContents), "//weaver:renderEnd", string(mainRendering), 1)
+
+	return afero.WriteFile(s.fs, filepath.Join(s.rootDir, "main.go"), []byte(newMainContent), 0777)
 }

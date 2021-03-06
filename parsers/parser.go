@@ -1,6 +1,7 @@
 package parsers
 
 type ResourceDefinition struct {
+	RootModule       string
 	Name             string
 	PluralName       string
 	PublicName       string
