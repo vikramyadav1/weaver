@@ -7,6 +7,8 @@ import "io/ioutil"
 import "path/filepath"
 import "text/template"
 
+var UpMigrationFilename string = "UpMigration.go.template"
+var DownMigrationFilename string = "DownMigration.go.template"
 var ModelFileName string = "model.go.template"
 var RepositoryFileName string = "repository.go.template"
 var ServerFileName string = "server.go.template"
@@ -36,16 +38,36 @@ type goRenderings struct {
 }
 
 func (gr goRenderings) UpMigration() []byte {
-	return make([]byte, 0)
+	upMigrationFilepath := filepath.Join(gr.templateDir, "go", UpMigrationFilename)
+
+	b, _ := ioutil.ReadFile(upMigrationFilepath)
+	t, _ := template.New("up-migration-tmpl").Parse(string(b))
+
+	var tpl bytes.Buffer
+	if err := t.Execute(&tpl, gr.rd); err != nil {
+		fmt.Printf("\nAn error occured while rendering the up migration.\n Error: %v\n", err)
+	}
+
+	return tpl.Bytes()
 }
 
 func (gr goRenderings) DownMigration() []byte {
-	return make([]byte, 0)
+	downMigrationFilename := filepath.Join(gr.templateDir, "go", DownMigrationFilename)
+
+	b, _ := ioutil.ReadFile(downMigrationFilename)
+	t, _ := template.New("down-migration-tmpl").Parse(string(b))
+
+	var tpl bytes.Buffer
+	if err := t.Execute(&tpl, gr.rd); err != nil {
+		fmt.Printf("\nAn error occured while rendering the down migration.\n Error: %v\n", err)
+	}
+
+	return tpl.Bytes()
 }
 
 func (gr goRenderings) Model() []byte {
-	filepath := filepath.Join(gr.templateDir, "go", ModelFileName)
-	b, _ := ioutil.ReadFile(filepath)
+	modelFilepath := filepath.Join(gr.templateDir, "go", ModelFileName)
+	b, _ := ioutil.ReadFile(modelFilepath)
 	t, _ := template.New("model-tmpl").Parse(string(b))
 
 	var tpl bytes.Buffer
@@ -57,8 +79,8 @@ func (gr goRenderings) Model() []byte {
 }
 
 func (gr goRenderings) Server() []byte {
-	filepath := filepath.Join(gr.templateDir, "go", ServerFileName)
-	b, _ := ioutil.ReadFile(filepath)
+	serverFilepath := filepath.Join(gr.templateDir, "go", ServerFileName)
+	b, _ := ioutil.ReadFile(serverFilepath)
 	t := template.Must(template.New("server-tmpl").Parse(string(b)))
 
 	var tpl bytes.Buffer
@@ -70,8 +92,8 @@ func (gr goRenderings) Server() []byte {
 }
 
 func (gr goRenderings) Repository() []byte {
-	filepath := filepath.Join(gr.templateDir, "go", RepositoryFileName)
-	b, _ := ioutil.ReadFile(filepath)
+	repositoryFilepath := filepath.Join(gr.templateDir, "go", RepositoryFileName)
+	b, _ := ioutil.ReadFile(repositoryFilepath)
 	t := template.Must(template.New("repository-tmpl").Parse(string(b)))
 
 	var tpl bytes.Buffer
@@ -83,8 +105,8 @@ func (gr goRenderings) Repository() []byte {
 }
 
 func (gr goRenderings) Main() []byte {
-	filepath := filepath.Join(gr.templateDir, "go", MainFileName)
-	b, _ := ioutil.ReadFile(filepath)
+	mainFilepath := filepath.Join(gr.templateDir, "go", MainFileName)
+	b, _ := ioutil.ReadFile(mainFilepath)
 	t := template.Must(template.New("main-tmpl").Parse(string(b)))
 
 	var tpl bytes.Buffer
@@ -96,8 +118,8 @@ func (gr goRenderings) Main() []byte {
 }
 
 func (gr goRenderings) PartialMain() []byte {
-	filepath := filepath.Join(gr.templateDir, "go", MainPartialFileName)
-	b, _ := ioutil.ReadFile(filepath)
+	partialMainFilepath := filepath.Join(gr.templateDir, "go", MainPartialFileName)
+	b, _ := ioutil.ReadFile(partialMainFilepath)
 	t := template.Must(template.New("partial-main-tmpl").Parse(string(b)))
 
 	var tpl bytes.Buffer

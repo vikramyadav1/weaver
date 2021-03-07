@@ -7,6 +7,7 @@ import (
 	"github.com/vikramyadav1/weaver/renderer"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type stitcher struct {
@@ -26,7 +27,7 @@ func NewStitcher(rootDir string, fs afero.Fs, r renderer.Renderings, rd parsers.
 }
 
 func (s stitcher) Stitch() error {
-	fns := []func(s *stitcher) error{tryCreateModel, tryCreateRepository, tryCreateServer, tryCreateMain}
+	fns := []func(s *stitcher) error{tryCreateModel, tryCreateRepository, tryCreateServer, tryCreateMain, tryCreateMigrations}
 	var err error
 	for _, fn := range fns {
 		if err = fn(&s); err != nil {
@@ -83,4 +84,27 @@ func tryCreateMain(s *stitcher) error {
 	newMainContent := strings.Replace(string(mainContents), "//weaver:renderEnd", string(mainRendering), 1)
 
 	return afero.WriteFile(s.fs, filepath.Join(s.rootDir, "main.go"), []byte(newMainContent), 0777)
+}
+
+func tryCreateMigrations(s *stitcher) error {
+	dirPath := filepath.Join(s.rootDir, "migrations")
+	err := s.fs.MkdirAll(dirPath, 0777)
+	if err != nil {
+		return err
+	}
+
+	t := time.Now()
+	formatted := fmt.Sprintf("%d%02d%02d%02d%02d%02d",
+		t.Year(), t.Month(), t.Day(),
+		t.Hour(), t.Minute(), t.Second())
+
+	upFilename := fmt.Sprintf("%s.up.sql", formatted)
+	downFilename := fmt.Sprintf("%s.down.sql", formatted)
+
+	err = afero.WriteFile(s.fs, filepath.Join(dirPath, upFilename), s.renderings.UpMigration(), 0777)
+	if err != nil {
+		return err
+	}
+
+	return afero.WriteFile(s.fs, filepath.Join(dirPath, downFilename), s.renderings.DownMigration(), 0777)
 }
