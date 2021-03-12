@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS {{.PluralName}}
+DROP TABLE IF EXISTS {{.PluralName}};

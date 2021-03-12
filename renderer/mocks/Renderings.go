@@ -57,6 +57,22 @@ func (_m *Renderings) Model() []byte {
 	return r0
 }
 
+// PartialMain provides a mock function with given fields:
+func (_m *Renderings) PartialMain() []byte {
+	ret := _m.Called()
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func() []byte); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	return r0
+}
+
 // Repository provides a mock function with given fields:
 func (_m *Renderings) Repository() []byte {
 	ret := _m.Called()
