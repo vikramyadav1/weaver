@@ -1,4 +1,4 @@
-string(b) api
+package api
 
 import (
 	"encoding/json"
@@ -25,12 +25,12 @@ type {{.PublicName}}Reference struct {
 func toJson{{.PublicName}}({{.VarPrefix}} {{.Name}}.{{.PublicName}}) {{.PublicName}}Json {
 	return {{.PublicName}}Json{
     {{range .Columns}}
-      {{.Name}}: {{$.VarPrefix}}.{{.Name}},
+      {{.PublicName}}: {{$.VarPrefix}}.{{.PublicName}},
     {{end}}
 
 		References: {{.PublicName}}Reference{
       {{range .References.BelongsTo}}
-        {{.Name}}: {{$.VarPrefix}}.{{.Name}},
+        {{.PublicName}}: {{$.VarPrefix}}.{{.PublicName}},
       {{end}}
 		},
 	}
@@ -39,10 +39,10 @@ func toJson{{.PublicName}}({{.VarPrefix}} {{.Name}}.{{.PublicName}}) {{.PublicNa
 func toDB{{.PublicName}}({{.VarPrefix}} {{.PublicName}}Json) {{.Name}}.{{.PublicName}} {
 	return {{.Name}}.{{.PublicName}}{
     {{range .Columns}}
-      {{.Name}}: {{$.VarPrefix}}.{{.Name}},
+      {{.PublicName}}: {{$.VarPrefix}}.{{.PublicName}},
     {{end}}
     {{range .References.BelongsTo}}
-      {{.Name}}: {{$.VarPrefix}}.References.{{.Name}},
+      {{.PublicName}}: {{$.VarPrefix}}.References.{{.PublicName}},
     {{end}}
 	}
 }

@@ -2,6 +2,7 @@
   "name": "product",
   "rootModule": "github.com/vikramyadav1/store",
   "columns": [
+    {"name": "id", "type": "int"},
     {"name": "name", "type": "string"},
     {"name": "quantity", "type": "int"}
   ]

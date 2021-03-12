@@ -19,7 +19,7 @@ func main() {
 	}
 	defer db.Close()
 
-	{{.VarPrefix}}r := {{.Name}}.Sql{{.Name}}Repository{Db: db}
+	{{.VarPrefix}}r := {{.Name}}.Sql{{.PublicName}}Repository{Db: db}
 	{{.VarPrefix}}s := api.{{.PublicName}}Server{{"{"}}{{.PublicVarPrefix}}r: &{{.VarPrefix}}r}
 	{{.VarPrefix}}s.RegisterRoutes(r)
   //weaver:renderEnd
