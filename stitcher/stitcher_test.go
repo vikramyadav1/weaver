@@ -140,3 +140,32 @@ func TestStitch_PartialMainRendering(t *testing.T) {
 	mainContents, _ := afero.ReadFile(fs, filepath.Join(rootDir, "main.go"))
 	assert.Equal("partial main rendering", string(mainContents))
 }
+
+func TestStitch_ResourceRendering(t *testing.T) {
+	log.SetOutput(ioutil.Discard)
+	assert := assert.New(t)
+	mockRenderings := new(mocks.Renderings)
+	rootDir := "/tmp/stitcher"
+	rd := parsers.ResourceDefinition{
+		Name: "product",
+	}
+	fs := new(afero.MemMapFs)
+
+	stitcher := NewStitcher(rootDir, fs, mockRenderings, rd)
+
+	mockRenderings.On("Model").Return([]byte("model rendering"))
+	mockRenderings.On("Repository").Return([]byte("repository rendering"))
+	mockRenderings.On("Server").Return([]byte("server rendering"))
+	mockRenderings.On("Main").Return([]byte("main rendering"))
+	mockRenderings.On("UpMigration").Return([]byte("up migration rendering"))
+	mockRenderings.On("DownMigration").Return([]byte("down migration rendering"))
+	mockRenderings.On("PartialMain").Return([]byte("partial main rendering"))
+
+	afero.WriteFile(fs, filepath.Join(rootDir, "main.go"), []byte("product\n//weaver:renderEnd"), 0644)
+
+	err := stitcher.Stitch()
+	assert.Nil(err)
+
+	mainContents, _ := afero.ReadFile(fs, filepath.Join(rootDir, "main.go"))
+	assert.Equal("product\n//weaver:renderEnd", string(mainContents))
+}

@@ -97,7 +97,12 @@ func tryCreateMain(s *stitcher) error {
 	mainFilepath := filepath.Join(s.rootDir, "main.go")
 
 	// Error not caught. Will be handle in future
-	mainExists, _ := afero.Exists(s.fs, mainFilepath)
+	mainExists, err := afero.Exists(s.fs, mainFilepath)
+	if err != nil {
+		log.Fatalf("Error while looking for main file")
+		return err
+	}
+
 	if !mainExists {
 		mainRendering = s.renderings.Main()
 		return afero.WriteFile(s.fs, filepath.Join(s.rootDir, "main.go"), mainRendering, 0777)
@@ -108,9 +113,14 @@ func tryCreateMain(s *stitcher) error {
 	if err != nil {
 		fmt.Printf("Error reading main file.\nError: %v", err)
 	}
-	newMainContent := strings.Replace(string(mainContents), "//weaver:renderEnd", string(mainRendering), 1)
 
-	return afero.WriteFile(s.fs, filepath.Join(s.rootDir, "main.go"), []byte(newMainContent), 0777)
+	if strings.Contains(string(mainContents), s.rd.Name) {
+		log.Printf("Main already contains reference to %v resource and therefore, the  resource addition is skipped.", s.rd.Name)
+		return nil
+	} else {
+		newMainContent := strings.Replace(string(mainContents), "//weaver:renderEnd", string(mainRendering), 1)
+		return afero.WriteFile(s.fs, filepath.Join(s.rootDir, "main.go"), []byte(newMainContent), 0777)
+	}
 }
 
 func tryCreateMigrations(s *stitcher) error {
